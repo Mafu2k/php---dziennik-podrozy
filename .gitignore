@@ -1,0 +1,17 @@
+# IDE
+.idea
+.vscode
+nbproject
+
+# system
+Thumbs.db
+.DS_Store
+
+# composer
+/vendor
+composer.phar
+
+# aplikacja
+/database.sqlite
+/runtime
+/web/assets
