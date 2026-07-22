@@ -106,3 +106,11 @@ models/        modele Active Record i modele formularzy
 views/         widoki (layouty, site, trip, country)
 web/           katalog publiczny (entry script, assety)
 ```
+
+## Autor
+
+Łukasz Janicki
+
+## Licencja
+
+BSD 3-Clause — szczegóły w pliku [LICENSE.md](LICENSE.md).
