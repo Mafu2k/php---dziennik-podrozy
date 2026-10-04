@@ -25,7 +25,8 @@ $config = [
     ],
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'hG7vR2nQwLp9XcKfT4mZsB1dYjA8oEuW',
+            // Na produkcji klucz musi przyjść ze zmiennej środowiskowej, wartość domyślna jest tylko do lokalnego uruchamiania.
+            'cookieValidationKey' => getenv('COOKIE_VALIDATION_KEY') ?: 'local-dev-only-key',
             'parsers' => [
                 'application/json' => \yii\web\JsonParser::class,
             ],

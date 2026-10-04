@@ -1,28 +1,21 @@
 # Dziennik Podróży
 
-Projekt zaliczeniowy z przedmiotu **Działania na frameworkach PHP** — aplikacja webowa
-zbudowana na frameworku **Yii 2** (Basic Project Template).
+Projekt zaliczeniowy z przedmiotu *Działania na frameworkach PHP*. Aplikacja w Yii 2 do
+zapisywania odbytych podróży: każdą przypisuje się do kraju, ocenia w skali 1–5, a całość
+jest też dostępna przez REST API.
 
-Aplikacja pozwala zapisywać odbyte podróże, przypisywać je do krajów, oceniać w skali 1-5
-oraz udostępnia te dane przez REST API.
+W projekcie są:
 
-## Funkcjonalności
+- CRUD podróży na `ActiveForm`, z listą opartą o `GridView` (paginacja, sortowanie),
+- walidacja modeli, w tym własny walidator sprawdzający kolejność dat,
+- logowanie, przy czym dodawać i edytować podróże może tylko zalogowany użytkownik (`AccessControl`),
+- formularz kontaktowy z captchą,
+- migracje, które zakładają tabele i wypełniają je przykładowymi danymi,
+- REST API na `yii\rest\ActiveController`.
 
-- lista podróży z paginacją i sortowaniem (`GridView` + `ActiveDataProvider`)
-- pełny CRUD podróży (dodawanie, podgląd, edycja, usuwanie) za formularzami `ActiveForm`
-- lista krajów z paginacją (`Pagination` + `LinkPager`)
-- walidacja modeli — walidatory wbudowane, walidator własny (porównanie dat) i `exist` (klucz obcy)
-- logowanie / wylogowanie — dodawanie i edycja podróży tylko dla zalogowanych (`AccessControl`)
-- formularz kontaktowy z captchą (e-mail zapisywany do pliku w `runtime/mail`)
-- REST API oparte o `yii\rest\ActiveController` z ładnymi adresami URL i obsługą JSON
-- migracje bazodanowe tworzące strukturę oraz dane startowe (`batchInsert`)
+## Uruchomienie
 
-## Wymagania
-
-- PHP >= 8.1 (z rozszerzeniami `pdo_sqlite`, `mbstring`, `intl`, `gd`)
-- Composer
-
-## Instalacja i uruchomienie
+Potrzebne jest PHP 8.1+ (`pdo_sqlite`, `mbstring`, `intl`, `gd`) i Composer.
 
 ```bash
 composer install
@@ -30,87 +23,41 @@ php yii migrate
 php yii serve --port=8080
 ```
 
-Aplikacja będzie dostępna pod adresem [http://localhost:8080](http://localhost:8080).
+Aplikacja wstaje pod http://localhost:8080. Działa też z `htdocs` XAMPP-a pod
+`http://localhost/dziennik-podrozy/web/`, bo ładne adresy obsługuje dołączony `web/.htaccess`.
 
-Projekt można też umieścić w `htdocs` XAMPP-a — wtedy działa pod
-`http://localhost/dziennik-podrozy/web/` (ładne adresy URL obsługuje dołączony `web/.htaccess`).
+Konta testowe to `admin` / `admin` i `demo` / `demo`.
 
-## Konto testowe
-
-| Login | Hasło |
-|-------|-------|
-| admin | admin |
-| demo  | demo  |
-
-## Baza danych
-
-Domyślnie projekt używa **SQLite** (plik `database.sqlite` tworzony przez migracje),
-dzięki czemu uruchamia się bez konfigurowania serwera baz danych.
-
-Aby przejść na MySQL (np. XAMPP), wystarczy zmienić `config/db.php`:
-
-```php
-return [
-    'class' => \yii\db\Connection::class,
-    'dsn' => 'mysql:host=localhost;dbname=dziennik_podrozy',
-    'username' => 'root',
-    'password' => '',
-    'charset' => 'utf8',
-];
-```
-
-i ponownie uruchomić `php yii migrate`.
+Baza to domyślnie SQLite (`database.sqlite`, tworzona przez migracje), więc nic nie trzeba
+konfigurować. Żeby przejść na MySQL, wystarczy podmienić DSN w `config/db.php` i jeszcze raz
+puścić migracje.
 
 ## REST API
 
 | Metoda | Adres | Opis |
 |--------|-------|------|
-| GET | `/api/trips` | lista podróży (z paginacją w nagłówkach) |
-| GET | `/api/trips/1` | szczegóły podróży |
-| POST | `/api/trips` | utworzenie podróży |
-| PUT | `/api/trips/1` | aktualizacja podróży |
-| DELETE | `/api/trips/1` | usunięcie podróży |
+| GET | `/api/trips` | lista podróży (paginacja w nagłówkach) |
+| GET | `/api/trips/{id}` | jedna podróż |
+| POST | `/api/trips` | dodanie podróży |
+| PUT | `/api/trips/{id}` | edycja |
+| DELETE | `/api/trips/{id}` | usunięcie |
 | GET | `/api/countries` | lista krajów (tylko odczyt) |
-| GET | `/api/countries/PL` | szczegóły kraju |
+| GET | `/api/countries/{code}` | jeden kraj, np. `PL` |
 
-Dodatkowe parametry:
-
-- `?fields=code,name` — zawężenie zwracanych pól
-- `?expand=country` — dołączenie powiązanego kraju do podróży
-- `?expand=trips` — dołączenie podróży do kraju
-
-Przykłady (curl):
+Działają standardowe parametry Yii: `?fields=code,name` zawęża pola, a `?expand=country` (dla
+podróży) albo `?expand=trips` (dla kraju) dołącza relację. Format odpowiedzi zależy od nagłówka
+`Accept`, czyli JSON albo XML.
 
 ```bash
-curl -H "Accept: application/json" "http://localhost:8080/api/trips"
-
 curl -H "Accept: application/json" "http://localhost:8080/api/trips/1?expand=country"
 
-curl -H "Accept: application/json" -H "Content-Type: application/json" \
-  -X POST "http://localhost:8080/api/trips" \
+curl -H "Content-Type: application/json" -X POST "http://localhost:8080/api/trips" \
   -d '{"title":"Nowa podróż","country_code":"PL","start_date":"2026-07-01","end_date":"2026-07-10","rating":5}'
 ```
 
-API zwraca JSON lub XML w zależności od nagłówka `Accept` (content negotiation).
-
-Uwaga: w ramach uproszczenia projektu endpointy API nie wymagają uwierzytelnienia.
-W wersji produkcyjnej należałoby dodać np. `HttpBearerAuth` do kontrolerów REST.
-
-## Struktura projektu
-
-```
-config/        konfiguracja aplikacji (web, console, db, params)
-controllers/   kontrolery MVC + kontrolery REST w podkatalogu api/
-migrations/    migracje bazodanowe
-models/        modele Active Record i modele formularzy
-views/         widoki (layouty, site, trip, country)
-web/           katalog publiczny (entry script, assety)
-```
-
-## Autor
-
-Łukasz Janicki
+API celowo nie ma uwierzytelniania, żeby łatwo było je sprawdzić na zajęciach. W prawdziwym
+wdrożeniu trzeba by dodać np. `HttpBearerAuth` i ustawić `COOKIE_VALIDATION_KEY` w środowisku.
 
 ## Licencja
 
-BSD 3-Clause — szczegóły w pliku [LICENSE.md](LICENSE.md).
+BSD 3-Clause, szczegóły w [LICENSE.md](LICENSE.md).
